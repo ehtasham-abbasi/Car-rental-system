@@ -1,148 +1,147 @@
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 class Car {
-    private String licensePlate;
     private String model;
-    private boolean isRented;
+    private String registrationNumber;
+    private boolean isAvailable;
 
-    public Car(String licensePlate, String model) {
-        this.licensePlate = licensePlate;
+    public Car(String model, String registrationNumber) {
         this.model = model;
-        this.isRented = false;
-    }
-
-    public String getLicensePlate() {
-        return licensePlate;
+        this.registrationNumber = registrationNumber;
+        this.isAvailable = true;  // By default, a car is available
     }
 
     public String getModel() {
         return model;
     }
 
-    public boolean isRented() {
-        return isRented;
+    public String getRegistrationNumber() {
+        return registrationNumber;
     }
 
-    public void rent() {
-        this.isRented = true;
+    public boolean isAvailable() {
+        return isAvailable;
+    }
+
+    public void rentCar() {
+        if (isAvailable) {
+            isAvailable = false;
+            System.out.println(model + " (" + registrationNumber + ") has been rented out.");
+        } else {
+            System.out.println("Sorry, this car is already rented.");
+        }
     }
 
     public void returnCar() {
-        this.isRented = false;
+        if (!isAvailable) {
+            isAvailable = true;
+            System.out.println(model + " (" + registrationNumber + ") has been returned.");
+        } else {
+            System.out.println("This car was not rented.");
+        }
+    }
+
+    @Override
+    public String toString() {
+        return model + " (" + registrationNumber + ") - " + (isAvailable ? "Available" : "Rented");
     }
 }
 
-class Customer {
-    private String name;
-    private String id;
+class CarRentalSystem {
+    private ArrayList<Car> cars;
+    private Scanner scanner;
 
-    public Customer(String name, String id) {
-        this.name = name;
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getId() {
-        return id;
-    }
-}
-
-class RentalService {
-    private List<Car> cars;
-    
-    public RentalService() {
+    public CarRentalSystem() {
         cars = new ArrayList<>();
-        // Adding some default cars
-        cars.add(new Car("ABC123", "Toyota Corolla"));
-        cars.add(new Car("XYZ789", "Honda Civic"));
-        cars.add(new Car("LMN456", "Ford Focus"));
+        scanner = new Scanner(System.in);
+    }
+
+    public void addCar() {
+        System.out.println("Enter car model: ");
+        String model = scanner.nextLine();
+        System.out.println("Enter car registration number: ");
+        String registrationNumber = scanner.nextLine();
+        cars.add(new Car(model, registrationNumber));
+        System.out.println("Car added successfully.");
     }
 
     public void displayAvailableCars() {
-        System.out.println("Available Cars:");
+        System.out.println("Available cars for rent:");
+        boolean found = false;
         for (Car car : cars) {
-            if (!car.isRented()) {
-                System.out.println(car.getLicensePlate() + " - " + car.getModel());
+            if (car.isAvailable()) {
+                System.out.println(car);
+                found = true;
             }
+        }
+        if (!found) {
+            System.out.println("No available cars.");
         }
     }
 
-    public void rentCar(String licensePlate, Customer customer) {
+    public void rentCar() {
+        System.out.println("Enter the registration number of the car you want to rent: ");
+        String registrationNumber = scanner.nextLine();
         for (Car car : cars) {
-            if (car.getLicensePlate().equalsIgnoreCase(licensePlate) && !car.isRented()) {
-                car.rent();
-                System.out.println(customer.getName() + " has rented the car: " + car.getModel());
+            if (car.getRegistrationNumber().equalsIgnoreCase(registrationNumber) && car.isAvailable()) {
+                car.rentCar();
                 return;
             }
         }
-        System.out.println("Car not available for rent.");
+        System.out.println("Car not available or invalid registration number.");
     }
 
-    public void returnCar(String licensePlate) {
+    public void returnCar() {
+        System.out.println("Enter the registration number of the car you want to return: ");
+        String registrationNumber = scanner.nextLine();
         for (Car car : cars) {
-            if (car.getLicensePlate().equalsIgnoreCase(licensePlate) && car.isRented()) {
+            if (car.getRegistrationNumber().equalsIgnoreCase(registrationNumber) && !car.isAvailable()) {
                 car.returnCar();
-                System.out.println("Car " + car.getModel() + " returned successfully.");
                 return;
             }
         }
-        System.out.println("This car was not rented.");
+        System.out.println("Car not rented or invalid registration number.");
     }
-}
 
-public class CarRentalManagementSystem {
-
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        RentalService rentalService = new RentalService();
-
+    public void menu() {
         while (true) {
-            System.out.println("\n--- Car Rental Management System ---");
-            System.out.println("1. Display Available Cars");
-            System.out.println("2. Rent a Car");
-            System.out.println("3. Return a Car");
-            System.out.println("4. Exit");
-            System.out.print("Choose an option: ");
-            
+            System.out.println("\nCar Rental System Menu:");
+            System.out.println("1. Add Car");
+            System.out.println("2. Display Available Cars");
+            System.out.println("3. Rent a Car");
+            System.out.println("4. Return a Car");
+            System.out.println("5. Exit");
+            System.out.print("Enter your choice: ");
             int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            scanner.nextLine(); // Consume newline character left by nextInt()
 
             switch (choice) {
                 case 1:
-                    rentalService.displayAvailableCars();
+                    addCar();
                     break;
-
                 case 2:
-                    System.out.print("Enter your name: ");
-                    String name = scanner.nextLine();
-                    System.out.print("Enter your ID: ");
-                    String id = scanner.nextLine();
-                    Customer customer = new Customer(name, id);
-                    
-                    System.out.print("Enter the license plate of the car you want to rent: ");
-                    String licensePlateToRent = scanner.nextLine();
-                    rentalService.rentCar(licensePlateToRent, customer);
+                    displayAvailableCars();
                     break;
-
                 case 3:
-                    System.out.print("Enter the license plate of the car you want to return: ");
-                    String licensePlateToReturn = scanner.nextLine();
-                    rentalService.returnCar(licensePlateToReturn);
+                    rentCar();
                     break;
-
                 case 4:
-                    System.out.println("Exiting the system. Thank you!");
-                    scanner.close();
+                    returnCar();
+                    break;
+                case 5:
+                    System.out.println("Exiting the system...");
                     return;
-
                 default:
-                    System.out.println("Invalid option. Please try again.");
+                    System.out.println("Invalid choice. Please try again.");
             }
         }
+    }
+}
+
+public class CarRentalApp {
+    public static void main(String[] args) {
+        CarRentalSystem rentalSystem = new CarRentalSystem();
+        rentalSystem.menu();
     }
 }
